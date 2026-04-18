@@ -22,8 +22,6 @@
 
 </div>
 
----
-
 ## Installation
 
 Clone the repository and install the dependencies to run the project in a local environment:
