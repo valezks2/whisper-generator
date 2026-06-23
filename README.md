@@ -17,18 +17,3 @@
 <a href="https://postimg.cc/zHN3jmVj">
   <img src="https://i.postimg.cc/7hG7qw4p/whisper-generator-desktop.png" width="1000" alt="Whisper Generator Desktop View">
 </a>
-
-<br />
-
-</div>
-
-## Installation
-
-Clone the repository and install the dependencies to run the project in a local environment:
-
-```bash
-git clone https://github.com/valezks2/whisper-generator.git
-cd whisper-generator
-npm install
-npm run dev
-```
