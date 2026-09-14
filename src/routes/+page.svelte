@@ -1,117 +1,118 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+    import { onMount } from 'svelte';
 
-	let text: string = '';
-	let showButtons: boolean = false;
-	let canvas: HTMLCanvasElement;
-	let ctx: CanvasRenderingContext2D;
-	let currentYear: number = new Date().getFullYear();
-	let img: HTMLImageElement;
+    let text: string = '';
+    let showButtons: boolean = false;
+    let canvas: HTMLCanvasElement;
+    let ctx: CanvasRenderingContext2D;
+    let currentYear: number = new Date().getFullYear();
+    let img: HTMLImageElement;
+	let textScale: number = 0.12;
+    let strokeColor: string = '#000000';
+    let textX: number = 0;
+    let textY: number = 0;
 
-	let fontSize: number = 90;
-	let strokeColor: string = '#000000';
-	let textX: number = 0;
-	let textY: number = 0;
+    function drawImageAndText() {
+        if (!img?.src) return;
 
-	function drawImageAndText() {
-		if (!img?.src) return;
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-		canvas.width = img.naturalWidth;
-		canvas.height = img.naturalHeight;
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const lines: string[] = text.trim().split('\n');
+        if (lines[0]) {
+            const actualFontSize = Math.round(canvas.height * textScale);
 
-		const lines: string[] = text.trim().split('\n');
-		if (lines[0]) {
-			ctx.font = `${fontSize}px Upright, sans-serif`;
-			ctx.fillStyle = 'white';
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.strokeStyle = strokeColor;
-			ctx.lineWidth = fontSize / 7.5;
-			ctx.lineJoin = 'round';
+            ctx.font = `${actualFontSize}px Upright, sans-serif`;
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = actualFontSize / 7.5;
+            ctx.lineJoin = 'round';
 
-			const x = canvas.width / 2 + textX;
-			const lineHeight = fontSize;
-			const totalHeight = lines.length * lineHeight;
-			let y = canvas.height / 2 - totalHeight / 2 + lineHeight / 2 + textY;
+            const x = canvas.width / 2 + textX;
+            const lineHeight = actualFontSize;
+            const totalHeight = lines.length * lineHeight;
+            let y = canvas.height / 2 - totalHeight / 2 + lineHeight / 2 + textY;
 
-			lines.forEach((line) => {
-				ctx.strokeText(line, x, y);
-				ctx.fillText(line, x, y);
-				y += lineHeight;
-			});
-		}
-	}
+            lines.forEach((line) => {
+                ctx.strokeText(line, x, y);
+                ctx.fillText(line, x, y);
+                y += lineHeight;
+            });
+        }
+    }
 
-	function handleFile(e: Event) {
-		const input = e.target as HTMLInputElement;
-		const file = input?.files?.[0];
-		if (file && file.type.startsWith('image/')) {
-			const reader = new FileReader();
-			reader.onload = (ev: ProgressEvent<FileReader>) => {
-				const result = ev.target?.result;
-				if (typeof result === 'string') {
-					img.src = result;
-				}
-			};
-			reader.readAsDataURL(file);
-		}
-	}
+    function handleFile(e: Event) {
+        const input = e.target as HTMLInputElement;
+        const file = input?.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (ev: ProgressEvent<FileReader>) => {
+                const result = ev.target?.result;
+                if (typeof result === 'string') {
+                    img.src = result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
 
-	function changePicture() {
-		showButtons = false;
-		text = '';
-		fontSize = 90;
-		strokeColor = '#000000';
-		textX = 0;
-		textY = 0;
-		if (img) img.src = '';
+    function changePicture() {
+        showButtons = false;
+        text = '';
+        textScale = 0.12;
+        strokeColor = '#000000';
+        textX = 0;
+        textY = 0;
+        if (img) img.src = '';
 
-		if (ctx && canvas) {
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			canvas.width = 0;
-			canvas.height = 0;
-		}
-		showImageContainer(false);
-	}
+        if (ctx && canvas) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.width = 0;
+            canvas.height = 0;
+        }
+        showImageContainer(false);
+    }
 
-	function showImageContainer(shouldShow: boolean) {
-		const container = document.querySelector('.image-container');
-		if (container && container instanceof HTMLElement) {
-			container.style.display = shouldShow ? 'block' : 'none';
-		}
-	}
+    function showImageContainer(shouldShow: boolean) {
+        const container = document.querySelector('.image-container');
+        if (container && container instanceof HTMLElement) {
+            container.style.display = shouldShow ? 'block' : 'none';
+        }
+    }
 
-	function download() {
-		if (!img?.src) return;
-		const dataURL = canvas.toDataURL('image/png');
-		const link = document.createElement('a');
-		link.href = dataURL;
-		link.download = 'whisper-generator.png';
-		link.click();
-	}
+    function download() {
+        if (!img?.src) return;
+        const dataURL = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = 'whisper-generator.png';
+        link.click();
+    }
 
-	onMount(() => {
-		img = new Image();
-		ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    onMount(() => {
+        img = new Image();
+        ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-		img.onload = () => {
-			drawImageAndText();
-			showButtons = true;
-			showImageContainer(true);
-		};
-	});
+        img.onload = () => {
+            drawImageAndText();
+            showButtons = true;
+            showImageContainer(true);
+        };
+    });
 
-	$: if (img?.src) {
-		(text, fontSize, strokeColor, textX, textY);
-		if (text.trim() === '' && textX === 0 && textY === 0) {
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-		} else {
-			drawImageAndText();
-		}
-	}
+    $: if (img?.src) {
+        (text, textScale, strokeColor, textX, textY);
+        if (text.trim() === '' && textX === 0 && textY === 0) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        } else {
+            drawImageAndText();
+        }
+    }
 </script>
 
 <div class="flex flex-col min-h-screen font-upright bg-white">
@@ -134,12 +135,13 @@
 			{#if showButtons}
 				<div class="grid grid-cols-2 gap-4 p-4 bg-[#f0f0f0] border-2 border-black">
 					<label class="flex flex-col gap-1">
-						<span class="text-[1rem]">Size: {fontSize}px</span>
+						<span class="text-[1rem]">Size: {Math.round(textScale * 100)}%</span>
 						<input
 							type="range"
-							min="20"
-							max="250"
-							bind:value={fontSize}
+							min="0.02"
+							max="0.25"
+							step="0.005"
+							bind:value={textScale}
 							class="accent-black cursor-pointer"
 						/>
 					</label>
